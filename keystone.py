@@ -25,13 +25,13 @@ def chirpz_fast(sig, ratio, A=1):
     In our implementation, N=M
     """
     M = np.size(sig)
-    L = np.power(2, int(np.ceil(np.log2(2*M - 1))))
+    L = np.power(2, int(np.ceil(np.log2(2 * M - 1))))
 
     # [WARNING] phase center: mid-point of sig
     m_idx = np.arange(M)
     # W = np.exp(-2j*ratio*np.pi/M)
     # w_coeff = np.power(A, -m_idx) * np.power(W, m_idx**2/2.0)
-    w_coeff = np.exp(-1j*ratio*np.pi/M*(m_idx**2))
+    w_coeff = np.exp(-1j * ratio * np.pi / M * (m_idx**2))
     sig_fft = fft.fft(w_coeff * sig, L)
 
     # coefficient
@@ -40,8 +40,8 @@ def chirpz_fast(sig, ratio, A=1):
     # h[L-M+1:] = np.power(W, -m_idx[M-1:0:-1]**2/2.0)
     h[:M] = np.conj(w_coeff)
     # m_idx2 = L - np.arange(L-M+1, L)
-    m_idx2 = np.arange(M-1, 0, -1)
-    h[L-M+1:] = np.exp(1j*ratio*np.pi/M*(m_idx2**2))
+    m_idx2 = np.arange(M - 1, 0, -1)
+    h[L - M + 1 :] = np.exp(1j * ratio * np.pi / M * (m_idx2**2))
     window_fft = fft.fft(h)
 
     # convolution
@@ -56,16 +56,16 @@ def chirpz_fast(sig, ratio, A=1):
 
 
 def chirpz(sig, ratio, A=1):
-    """ chirp z transform on 1D signal """
+    """chirp z transform on 1D signal"""
     M = np.size(sig)
-    L = 2*M - 1
+    L = 2 * M - 1
     # [WARNING] phase center: mid-point of sig
     m_idx = np.arange(M)
-    w_coeff = A*np.exp(-1j*ratio*np.pi/M*(m_idx**2))
+    w_coeff = A * np.exp(-1j * ratio * np.pi / M * (m_idx**2))
     h = np.zeros(L, dtype=np.complex)
     h[:M] = np.conj(w_coeff)
-    h2 = (L - np.arange(M, L))**2
-    h[M:] = A*np.exp(1j*ratio*np.pi/M*h2)
+    h2 = (L - np.arange(M, L)) ** 2
+    h[M:] = A * np.exp(1j * ratio * np.pi / M * h2)
 
     # convolution
     window_fft = fft.fft(h)
@@ -98,14 +98,14 @@ def kt_chirpz(x_mat, K=0, fc=35e9, delta_fs=250e3, n_fc=0):
     freq_bins = fft.fftfreq(n_fasttime) * n_fasttime
 
     for i in range(n_fasttime):
-        ratio = fc / (freq_bins[i]*delta_fs + fc)
+        ratio = fc / (freq_bins[i] * delta_fs + fc)
         ratio_chirpz = 1.0 / ratio
         k_vec = chirpz_fast(s_mat[i], ratio_chirpz)
         k_doppler = fft.ifft(k_vec)
 
         # compensate for doppler ambiguity
         m_idx = np.arange(len(k_doppler))
-        comp = np.exp(1j*2*np.pi*K*ratio*m_idx)
+        comp = np.exp(1j * 2 * np.pi * K * ratio * m_idx)
         k_comp = k_doppler * comp
 
         # save
@@ -147,7 +147,7 @@ def kt_interp(x_mat, fc=35e9, delta_fs=250e3, n_fc=0):
     for m in range(n_fasttime):
 
         # time scale ratio
-        ratio_m = fc / (fc + freq_bins[m]*delta_fs)
+        ratio_m = fc / (fc + freq_bins[m] * delta_fs)
         # ALT: using sqrt keystone to reduce QDM (acceleration)
         # ratio = np.sqrt(ratio)
 

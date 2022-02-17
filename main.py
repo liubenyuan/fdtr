@@ -14,16 +14,16 @@ from postproc import mad_filter_v
 from score import ktb_save
 
 
-version = 'online'
+version = "online"
 
-if version == 'offline':
+if version == "offline":
     verbose = True
     dump_pickle = True
-    gate_name = 'data_gate'
+    gate_name = "data_gate"
 else:
     verbose = False
     dump_pickle = False
-    gate_name = 'radar_data_gate'  # on-line key value
+    gate_name = "radar_data_gate"  # on-line key value
 
 """
 main interface
@@ -35,7 +35,7 @@ arg_output = '/data/ktb2019/data/{0}.txt'.format(arg_id)
 """
 argc = len(sys.argv)
 if argc != 4:
-    raise Exception('usage: main.py folder data_id output.txt')
+    raise Exception("usage: main.py folder data_id output.txt")
 else:
     arg_folder = sys.argv[1]
     arg_id = sys.argv[2]
@@ -45,20 +45,20 @@ if verbose:
     print(arg_folder, arg_id, arg_output)
 
 # dataset and gate files
-data_file = os.path.join(arg_folder, arg_id, '{0}.mat'.format(arg_id))
-gate_file = os.path.join(arg_folder, arg_id, '{0}_gate.mat'.format(arg_id))
+data_file = os.path.join(arg_folder, arg_id, "{0}.mat".format(arg_id))
+gate_file = os.path.join(arg_folder, arg_id, "{0}_gate.mat".format(arg_id))
 
 """
 load data and gate
 """
 df = loadmat(data_file)
-d = df['radar_pulse_squence']
+d = df["radar_pulse_squence"]
 df_g = loadmat(gate_file)
 gate = df_g[gate_name][0]
 
 # radar parameters
 n_pulse = 32
-n_fft = 2*n_pulse
+n_fft = 2 * n_pulse
 fft_interp = int(n_fft / n_pulse)
 lamb = 3e8 / 35e9  # 2.99792e8 / 35e9
 delta_f = 32e3 / n_fft  # interpolated speed resolution
@@ -71,8 +71,8 @@ thd = 3.03
 # RD parameters
 keystone = True
 highpass = True
-window = 'hann'
-first_stage = 'dft'  # you should enable Keystone if using 'dft'
+window = "hann"
+first_stage = "dft"  # you should enable Keystone if using 'dft'
 
 # RD and detect pipeline,
 n_fasttime, tot_pulse = d.shape
@@ -83,32 +83,46 @@ slide_t = 25e-3
 slide_frame = int(slide_t / delta_t)
 tot_seg = int((tot_frame - accum_frame) / slide_frame) + 1
 if verbose:
-    print('pulses=%d, frames=%d, segs=%d\n' % (tot_pulse, tot_frame, tot_seg))
+    print("pulses=%d, frames=%d, segs=%d\n" % (tot_pulse, tot_frame, tot_seg))
 
 # build DBT (+, -)
 model = model_dbt(dt=accum_t)
 # positive velocity
 dbt_p = DBT(model=model, init=Track)
-dbt_p.setup(delta_v, v_sign=1, n_pulse=n_pulse, n_fft=n_fft,
-            keystone=keystone, window=window, highpass=highpass)
+dbt_p.setup(
+    delta_v,
+    v_sign=1,
+    n_pulse=n_pulse,
+    n_fft=n_fft,
+    keystone=keystone,
+    window=window,
+    highpass=highpass,
+)
 # negative velocity
 dbt_n = DBT(model=model, init=Track)
-dbt_n.setup(delta_v, v_sign=-1, n_pulse=n_pulse, n_fft=n_fft,
-            keystone=keystone, window=window, highpass=highpass)
+dbt_n.setup(
+    delta_v,
+    v_sign=-1,
+    n_pulse=n_pulse,
+    n_fft=n_fft,
+    keystone=keystone,
+    window=window,
+    highpass=highpass,
+)
 
 # transform and detect using both positive and negative hypothesis
 x_set_p = []
 x_set_n = []
 for i in range(tot_seg):
     if verbose:
-        print('now process %d/%d' % (i, tot_seg))
+        print("now process %d/%d" % (i, tot_seg))
     tic = time.time()
 
     # extract segment
-    seg_len = n_pulse*accum_frame
-    slide_len = n_pulse*slide_frame
-    idx_seg = i*slide_len + np.arange(seg_len)  # 32*N pulses
-    idx_frame = i*slide_frame + np.arange(accum_frame)
+    seg_len = n_pulse * accum_frame
+    slide_len = n_pulse * slide_frame
+    idx_seg = i * slide_len + np.arange(seg_len)  # 32*N pulses
+    idx_frame = i * slide_frame + np.arange(accum_frame)
 
     # data and gate
     d_seg = d[:, idx_seg]
@@ -119,7 +133,7 @@ for i in range(tot_seg):
     xi_n = dbt_n.transform(d_seg, gate_seg)
 
     if verbose:
-        print('Detection time: ' + str(time.time() - tic) + ' sec')
+        print("Detection time: " + str(time.time() - tic) + " sec")
         print([xi_p, xi_n])
 
     x_set_p.append(xi_p)
@@ -132,7 +146,7 @@ x_set_n.append(x_set_n[-1])
 
 # dump x_set
 if dump_pickle:
-    with open('./data/{0}_pm.pickle'.format(arg_id), 'wb') as pf:
+    with open("./data/{0}_pm.pickle".format(arg_id), "wb") as pf:
         pickle.dump([x_set_p, x_set_n], pf)
 
 # 0. combin x_set

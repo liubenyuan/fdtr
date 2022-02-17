@@ -16,17 +16,18 @@ def cfar2d_threshold(img, g_cell=2, t_cell=2, thd=1.33):
     with g_cell=0, t_cell=1
     """
     # build 2D filter
-    nc = 1 + 2*g_cell + 2*t_cell
+    nc = 1 + 2 * g_cell + 2 * t_cell
     filt_mat = np.ones((nc, nc))
-    filt_mat[t_cell:t_cell+2*g_cell+1, t_cell:t_cell+2*g_cell+1] = 0
+    filt_mat[t_cell : t_cell + 2 * g_cell + 1, t_cell : t_cell + 2 * g_cell + 1] = 0
     filt_mat = filt_mat / np.sum(filt_mat)
 
     # convolve to get THD
     med_img = np.median(img)
-    thd_img = signal.convolve2d(img, filt_mat, boundary='symm',
-                                mode='same', fillvalue=med_img)
+    thd_img = signal.convolve2d(
+        img, filt_mat, boundary="symm", mode="same", fillvalue=med_img
+    )
 
-    return thd_img*thd
+    return thd_img * thd
 
 
 def cfar2d(img, r_mask=1, v_cell_skip=4, g_cell=2, t_cell=2, thd=1.414):
@@ -37,11 +38,11 @@ def cfar2d(img, r_mask=1, v_cell_skip=4, g_cell=2, t_cell=2, thd=1.414):
     """
     # CFAR threshold
     N, M = img.shape
-    img = img[:, v_cell_skip:M-v_cell_skip]
+    img = img[:, v_cell_skip : M - v_cell_skip]
     thd_img = cfar2d_threshold(img, g_cell=g_cell, t_cell=t_cell, thd=thd)
 
     # do not detect at blind frequency, note: doppler is shifted
-    thd_img[:, M//2 - v_cell_skip] = 1e16
+    thd_img[:, M // 2 - v_cell_skip] = 1e16
     thd_img[:r_mask] = 1e16
     thd_img[-r_mask:] = 1e16
 

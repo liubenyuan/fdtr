@@ -22,11 +22,11 @@ def rdscan_cluster(p, r_lim=40, d_lim=1.0):
     c_label = np.zeros(N)  # cluster labels (global index)
     p_idx = np.arange(N)  # point global index
 
-    while (len(p) > 0):
+    while len(p) > 0:
         n_cluster = n_cluster + 1
         new = [0]
 
-        while(len(new) > 0):
+        while len(new) > 0:
             c_label[p_idx[new]] = n_cluster  # update labels recursively
             pc = p[new]  # the new commers of this cluster
             p = np.delete(p, new, axis=0)  # delete rows of point
@@ -35,8 +35,8 @@ def rdscan_cluster(p, r_lim=40, d_lim=1.0):
             new = []
             for i, pi in enumerate(p):
                 diff = np.abs(pi - pc)
-                vr = (diff[:, 0] < r_lim)
-                vd = (diff[:, 1] < d_lim)
+                vr = diff[:, 0] < r_lim
+                vd = diff[:, 1] < d_lim
                 in_test = np.array([br and bd for br, bd in zip(vr, vd)])
 
                 # this point is within a square of either point in pc
@@ -47,8 +47,7 @@ def rdscan_cluster(p, r_lim=40, d_lim=1.0):
     return c_label
 
 
-def rdscan(p, a=None, label=None, cell=None,
-           r_lim=40, d_lim=8.6, method='leader'):
+def rdscan(p, a=None, label=None, cell=None, r_lim=40, d_lim=8.6, method="leader"):
     """
     rdscan with weighted cluster centers
 
@@ -83,7 +82,7 @@ def rdscan(p, a=None, label=None, cell=None,
     # calculate centers of clusters
     pc = []
     for i in range(n_cluster):
-        idx = np.where(c == (i+1))
+        idx = np.where(c == (i + 1))
         pi = p[idx]
         # we favor accumulation results with large amplitude
         ai = w[idx]
@@ -93,17 +92,17 @@ def rdscan(p, a=None, label=None, cell=None,
         amax_idx = np.argmax(ai)
         gc = gi[amax_idx]
         rd_cell = cell_i[amax_idx]
-        if method == 'leader':
+        if method == "leader":
             ac = np.max(ai)
             rd = pi[amax_idx]
             gc = gi[amax_idx]
 
-        elif method == 'weight':
+        elif method == "weight":
             wi = ai**2
-            wi = wi/np.sum(wi)  # normalize
+            wi = wi / np.sum(wi)  # normalize
 
             rd = np.dot(pi.T, wi)
-            ac = np.sum(ai*wi)
+            ac = np.sum(ai * wi)
 
         # cluster all informations
         pc.append(np.hstack([rd, ac, gc, rd_cell]))

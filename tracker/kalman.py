@@ -5,19 +5,19 @@ from numpy.linalg import inv
 
 
 class KF(object):
-    """ Kalman Filter class """
+    """Kalman Filter class"""
 
     def __init__(self, model, d0=None, dt=0.025):
-        """ a simple model """
+        """a simple model"""
         # update model parameters
-        self.dt = model['dt']  # delta time
-        self.A = model['A']  # observation matrix
-        self.F = model['F']  # state transition matrix
-        self.Q = model['Q']  # process noise matrix
-        self.R = model['R']  # observation noise matrix
+        self.dt = model["dt"]  # delta time
+        self.A = model["A"]  # observation matrix
+        self.F = model["F"]  # state transition matrix
+        self.Q = model["Q"]  # process noise matrix
+        self.R = model["R"]  # observation noise matrix
 
         # previous states
-        self.P = model['P']  # previous covariance matrix
+        self.P = model["P"]  # previous covariance matrix
         if d0 is None:
             d0 = np.zeros(2)  # initial measurements
         u0 = np.dot(self.A.T, d0)  # map d back to u

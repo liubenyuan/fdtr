@@ -26,20 +26,20 @@ def ktb_parameter():
     delta_fs = fs / n_fasttime
 
     # how many time fc folded when sampled at fs
-    k_mid = np.floor((fc - fs/2)/fs)
+    k_mid = np.floor((fc - fs / 2) / fs)
     k_mid = np.max([0, k_mid])
 
     # the location of fc (folded by sampling fs) at fasttime samples
     # n_fc = np.round(n_fasttime*fc/fs - (k_mid + 0.5)*n_fasttime)
-    n_fc = np.round((fc - fs/2) % fs / delta_fs)
+    n_fc = np.round((fc - fs / 2) % fs / delta_fs)
     n_fc = np.min([n_fasttime, np.max([0, n_fc])])
 
     par = dict()
-    par['fc'] = fc
-    par['delta_fs'] = delta_fs
-    par['k_mid'] = k_mid
-    par['n_fc'] = n_fc
-    par['n_fasttime'] = n_fasttime
+    par["fc"] = fc
+    par["delta_fs"] = delta_fs
+    par["k_mid"] = k_mid
+    par["n_fc"] = n_fc
+    par["n_fasttime"] = n_fasttime
 
     return par
 
@@ -48,7 +48,7 @@ def butter_highpass_filter(data, lowcut, fs, order=4, plot=False):
     """butterworth highpass filter"""
     nyq = 0.5 * fs
     low = lowcut / nyq
-    b, a = signal.butter(order, [low], btype='highpass')
+    b, a = signal.butter(order, [low], btype="highpass")
     y = signal.filtfilt(b, a, data)
     # y = signal.lfilter(b, a, data)
 
@@ -60,8 +60,7 @@ def butter_highpass_filter(data, lowcut, fs, order=4, plot=False):
 
 def fir_highpass(x, lowcut, fs, numtaps=11, plot=False):
     """fir highpass filter"""
-    hb = signal.firwin(numtaps, cutoff=lowcut, fs=fs, pass_zero=False,
-                       window='hann')
+    hb = signal.firwin(numtaps, cutoff=lowcut, fs=fs, pass_zero=False, window="hann")
     y = signal.filtfilt(hb, 1, x)
 
     if plot:
@@ -75,7 +74,7 @@ def butter_bandpass_filter(data, lowcut, highcut, fs, order=4, plot=False):
     nyq = 0.5 * fs
     low = lowcut / nyq
     high = highcut / nyq
-    b, a = signal.butter(order, [low, high], btype='bandpass')
+    b, a = signal.butter(order, [low, high], btype="bandpass")
     y = signal.lfilter(b, a, data)
 
     if plot:
@@ -91,10 +90,10 @@ def plot_filter(b, a, fs=1):
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.plot((fs * 0.5 / np.pi) * w, abs(h))
-    ax.set_xlabel('Frequency (KHz)')
-    ax.set_ylabel('Gain')
+    ax.set_xlabel("Frequency (KHz)")
+    ax.set_ylabel("Gain")
     ax.grid(True)
-    ax.set_title('Filter response')
+    ax.set_title("Filter response")
 
 
 def hp_filter(X, lamb=10000, missing_data=True):
@@ -104,14 +103,14 @@ def hp_filter(X, lamb=10000, missing_data=True):
     if missing_data:
         dx = pd.DataFrame(X)
         # dx = dx.fillna(method='pad')
-        dx = dx.interpolate(method='nearest')
+        dx = dx.interpolate(method="nearest")
     else:
         dx = X
     w = np.size(X, 0)
-    b = [[1]*w, [-2]*w, [1]*w]
-    D = sparse.spdiags(b, [0, 1, 2], w-2, w)
+    b = [[1] * w, [-2] * w, [1] * w]
+    D = sparse.spdiags(b, [0, 1, 2], w - 2, w)
     I_mat = sparse.eye(w)
-    B = (I_mat + lamb*(D.transpose()*D))
+    B = I_mat + lamb * (D.transpose() * D)
     return sla.dsolve.spsolve(B, dx)
 
 
@@ -125,41 +124,45 @@ def sinc_interp(x, s, u):
     """
 
     if len(x) != len(s):
-        raise(Exception, 'x and s must be the same length')
+        raise (Exception, "x and s must be the same length")
 
     # Find the period
     T = s[1] - s[0]
 
     sinc_mat = np.tile(u, (len(s), 1)) - np.tile(s[:, np.newaxis], (1, len(u)))
-    y = np.dot(x, np.sinc(sinc_mat/T))
+    y = np.dot(x, np.sinc(sinc_mat / T))
 
     return y
 
 
 def clutter_intensity_function(pos, lc, surveillance_region):
-    '''
+    """
     Clutter intensity function,
     with uniform distribution through the surveillance region, see pg. 8
     :param pos:
     :param lc:
     :param surveillance_region:
-    '''
-    if surveillance_region[0, 0] <= pos[0] <= surveillance_region[0, 1] and \
-       surveillance_region[1, 0] <= pos[1] <= surveillance_region[1, 1]:
+    """
+    if (
+        surveillance_region[0, 0] <= pos[0] <= surveillance_region[0, 1]
+        and surveillance_region[1, 0] <= pos[1] <= surveillance_region[1, 1]
+    ):
 
-        return lc / ((surveillance_region[0, 1] - surveillance_region[0, 0]) *
-                     (surveillance_region[1, 1] - surveillance_region[1, 0]))
+        return lc / (
+            (surveillance_region[0, 1] - surveillance_region[0, 0])
+            * (surveillance_region[1, 1] - surveillance_region[1, 0])
+        )
     else:
         return 0
 
 
 def z_in_region(z, region):
-    '''
+    """
     test if z is in the volume
-    '''
+    """
     bool_test = [region[i][0] <= zi <= region[i][1] for i, zi in enumerate(z)]
 
-    if(sum(bool_test) == len(z)):
+    if sum(bool_test) == len(z):
         return 1.0
     else:
         return 0.0
@@ -176,8 +179,7 @@ def clutter_intensity(z, lc, region):
     return lc * z_in_region(z, region) / volume(region)
 
 
-def true_tracks_plots(targets_birth_time, targets_death_time, targets_tracks,
-                      delta):
+def true_tracks_plots(targets_birth_time, targets_death_time, targets_tracks, delta):
     for_plot = {}
     for i, birth in enumerate(targets_birth_time):
         brojac = birth
@@ -230,13 +232,13 @@ if __name__ == "__main__":
     fs = 32e3
     plot = True
 
-    x = np.sin(2*np.pi*5.1e3*np.arange(64)/32e3)
+    x = np.sin(2 * np.pi * 5.1e3 * np.arange(64) / 32e3)
     xf = butter_highpass_filter(x, lowcut, fs, order=4, plot=plot)
     yf = fir_highpass(x, lowcut, fs, plot=plot)
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.plot(x, '-k')
-    ax.plot(xf, '-r')
-    ax.plot(yf, '-b')
+    ax.plot(x, "-k")
+    ax.plot(xf, "-r")
+    ax.plot(yf, "-b")
     ax.grid(True)

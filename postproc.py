@@ -6,13 +6,12 @@ from scipy.signal import medfilt
 
 
 def median_filter(x_set, kernel_size=11, pad=3):
-    """ median filter of v, x_set is Kalman state structure, [r, v, a] """
+    """median filter of v, x_set is Kalman state structure, [r, v, a]"""
     # conver non-equal list to ndarray
     length = max(map(len, x_set))
 
     empty_target = [[np.NaN, np.NaN]]  # a empty [r, v] target
-    x_mat = np.array([xi.tolist() +
-                      empty_target*(length-len(xi)) for xi in x_set])
+    x_mat = np.array([xi.tolist() + empty_target * (length - len(xi)) for xi in x_set])
     nf, nt, _ = x_mat.shape
     xv_filt = deepcopy(x_mat)
 
@@ -22,14 +21,14 @@ def median_filter(x_set, kernel_size=11, pad=3):
 
         # fill NaN values forward and backward
         df = pd.DataFrame(vi)
-        df.fillna(method='ffill', inplace=True)
-        df.fillna(method='bfill', inplace=True)
+        df.fillna(method="ffill", inplace=True)
+        df.fillna(method="bfill", inplace=True)
         vi = df.values.ravel()
 
         # median filter
-        vi_pad = np.pad(vi, pad, mode='edge')
+        vi_pad = np.pad(vi, pad, mode="edge")
         vi_filter = medfilt(vi_pad, kernel_size=kernel_size)
-        vi_filter = vi_filter[pad:pad+nf]
+        vi_filter = vi_filter[pad : pad + nf]
 
         # fill NaN back (NaNs are not targets)
         vi_filter[vi_nan_idx] = np.NaN
@@ -39,7 +38,7 @@ def median_filter(x_set, kernel_size=11, pad=3):
 
 
 def mad_select_v(xf, x, thd=0.3):
-    """ detect outliers of v """
+    """detect outliers of v"""
     xd = np.abs(x - xf)
     x_out = deepcopy(x)
     outliers = xd > thd
@@ -49,7 +48,7 @@ def mad_select_v(xf, x, thd=0.3):
 
 
 def mad_filter_v(x_set, kernel_size=11, pad=5):
-    """ median value is accepted if its div is larger than a thd """
+    """median value is accepted if its div is larger than a thd"""
     xv_filt, xv_orig = median_filter(x_set, kernel_size=kernel_size, pad=pad)
 
     nt = xv_orig.shape[1]

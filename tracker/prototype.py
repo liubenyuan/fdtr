@@ -5,10 +5,10 @@ from .kalman import KF
 
 
 class Link(object):
-    """ Linker """
+    """Linker"""
 
     def __init__(self, model, d0, track_id, confirm=0):
-        """ Initialize """
+        """Initialize"""
         # management
         self.track_id = track_id  # identification of each track object
         self.skipped_frames = 0  # number of frames skipped undetected
@@ -18,9 +18,9 @@ class Link(object):
         self.trace_idx = []  # trace global index (optional)
 
         # model
-        self.dt = model['dt']
-        self.F = model['F']
-        self.A = model['A']
+        self.dt = model["dt"]
+        self.F = model["F"]
+        self.A = model["A"]
 
         # init
         d0 = np.asarray(d0)
@@ -65,10 +65,10 @@ class Link(object):
 
 
 class Track(object):
-    """ Kalman Filter """
+    """Kalman Filter"""
 
     def __init__(self, model, d0, track_id, confirm=0):
-        """ Initialize """
+        """Initialize"""
         # management
         self.track_id = track_id  # identification of each track object
         self.skipped_frames = 0  # number of frames skipped undetected
@@ -80,7 +80,7 @@ class Track(object):
         # model
         d = np.asarray(d0)
         self.KF = KF(model, d)  # KF instance to track this object
-        self.A = model['A']
+        self.A = model["A"]
         self.prediction = d  # predicted centroids
         self.state = self.KF.u
 
@@ -109,11 +109,12 @@ class Track(object):
 
 
 class GHK(object):
-    """ alpha-beta-gamma filter """
+    """alpha-beta-gamma filter"""
 
-    def __init__(self, model, d0, track_id, confirm=0,
-                 alpha=0.9, beta=0.75, gamma=0.15):
-        """ Initialize """
+    def __init__(
+        self, model, d0, track_id, confirm=0, alpha=0.9, beta=0.75, gamma=0.15
+    ):
+        """Initialize"""
         # management
         self.track_id = track_id  # identification of each track object
         self.skipped_frames = 0  # number of frames skipped undetected
@@ -127,9 +128,9 @@ class GHK(object):
         self.last_prediction = d
         self.prediction = d  # predicted centroids (x,y)
         self.state = np.hstack([d, 0])  # assume acceleration=0
-        self.dt = model['dt']
-        self.F = model['F']
-        self.A = model['A']
+        self.dt = model["dt"]
+        self.F = model["F"]
+        self.A = model["A"]
 
         # g-h-k filter parameters
         self.alpha = alpha
@@ -162,7 +163,7 @@ class GHK(object):
             innov[2] = vdiff
 
             # g-h-k filter
-            self.state = next_state + self.vec*innov
+            self.state = next_state + self.vec * innov
 
         """
         if flag_miss==0:

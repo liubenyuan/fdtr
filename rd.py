@@ -10,7 +10,7 @@ from utils import butter_highpass_filter
 
 
 def raw_gate_align(d, gate, delta_r=1.875, n_pulse=32):
-    """ padding raw data """
+    """padding raw data"""
     gate_offset = gate - gate[0]
     r_index = gate_offset // delta_r
 
@@ -29,16 +29,16 @@ def raw_gate_align(d, gate, delta_r=1.875, n_pulse=32):
         n_prev = int(r_index[i])
         n_after = r_extend - n_prev
         # extract the data of this frame
-        idx = i*n_pulse + np.arange(n_pulse)
+        idx = i * n_pulse + np.arange(n_pulse)
         d_seg = d[:, idx]
-        dp_seg = np.pad(d_seg, [[n_prev, n_after], [0, 0]], mode='edge')
+        dp_seg = np.pad(d_seg, [[n_prev, n_after], [0, 0]], mode="edge")
         dp[:, idx] = dp_seg
 
     return dp, r_offset, r_extend
 
 
 def rd_gate_align(rds, gate, delta_r=1.875):
-    """ RD image padding with gate walks """
+    """RD image padding with gate walks"""
     gate_offset = gate - gate[0]
     r_index = gate_offset // delta_r
 
@@ -51,13 +51,12 @@ def rd_gate_align(rds, gate, delta_r=1.875):
 
     # pad
     n_fasttime, n_slowtime, n_frame = rds.shape
-    rds_pad = np.zeros((n_fasttime+r_extend, n_slowtime, n_frame),
-                       dtype=rds.dtype)
+    rds_pad = np.zeros((n_fasttime + r_extend, n_slowtime, n_frame), dtype=rds.dtype)
     for i in range(n_frame):
         n_prev = int(r_index[i])
         n_after = r_extend - n_prev
         rd_i = rds[:, :, i]
-        rd_p = np.pad(rd_i, [[n_prev, n_after], [0, 0]], mode='edge')
+        rd_p = np.pad(rd_i, [[n_prev, n_after], [0, 0]], mode="edge")
         rds_pad[:, :, i] = rd_p
 
     return rds_pad, r_offset, r_extend
@@ -72,8 +71,9 @@ def range_align_xcorr():
     pass
 
 
-def rd_transform(x_mat, n_fft=64, window='hann',
-                 highpass=False, order=4, plot_filter=False):
+def rd_transform(
+    x_mat, n_fft=64, window="hann", highpass=False, order=4, plot_filter=False
+):
     """
     FFT on axis=1, per row, of x_raw
 
@@ -92,11 +92,11 @@ def rd_transform(x_mat, n_fft=64, window='hann',
     # 2. add window for FFT
     n_fasttime, n_slowtime = x_mat.shape
     window_type = window.lower()
-    if window_type == 'gaussian':
+    if window_type == "gaussian":
         w = signal.gaussian(n_slowtime, 8.0)
-    elif window_type == 'hann':
+    elif window_type == "hann":
         w = signal.hann(n_slowtime, sym=False)
-    elif window_type == 'hamming':
+    elif window_type == "hamming":
         w = signal.hamming(n_slowtime)
     else:
         w = np.ones(n_slowtime)
@@ -115,8 +115,16 @@ def rd_transform(x_mat, n_fft=64, window='hann',
     return rd
 
 
-def rd_mmv(x_mat, K=0, n_pulse=32, n_fft=32, keystone=False,
-           window=None, highpass=False, order=4):
+def rd_mmv(
+    x_mat,
+    K=0,
+    n_pulse=32,
+    n_fft=32,
+    keystone=False,
+    window=None,
+    highpass=False,
+    order=4,
+):
     """
     build rd image sequencies (3-D: n_range * n_fft * n_frame)
 
@@ -138,10 +146,11 @@ def rd_mmv(x_mat, K=0, n_pulse=32, n_fft=32, keystone=False,
     rd = np.zeros((n_range, n_fft, n_frame), dtype=np.complex)
     for i in range(n_frame):
         # extract the i-th segment
-        idx = i*n_pulse + np.arange(n_pulse)
+        idx = i * n_pulse + np.arange(n_pulse)
         x_seg = x_mat[:, idx]
 
-        rd[:, :, i] = rd_transform(x_seg, n_fft=n_fft, window=window,
-                                   highpass=highpass, order=order)
+        rd[:, :, i] = rd_transform(
+            x_seg, n_fft=n_fft, window=window, highpass=highpass, order=order
+        )
 
     return rd

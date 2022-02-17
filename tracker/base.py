@@ -8,18 +8,22 @@ import matplotlib.pyplot as plt
 
 
 class Tracker(object):
-    """ Tracker class that updates track vectors of object tracked """
+    """Tracker class that updates track vectors of object tracked"""
 
-    def __init__(self, model, init,
-                 verbose=False,
-                 dist_thresh=10,
-                 max_frames_to_skip=10,
-                 max_skip_prediction=2,
-                 min_confirm_length=5,
-                 max_unconfirm_length=5,
-                 max_trace_length=10000,
-                 min_violate_num=30,
-                 track_id=0):
+    def __init__(
+        self,
+        model,
+        init,
+        verbose=False,
+        dist_thresh=10,
+        max_frames_to_skip=10,
+        max_skip_prediction=2,
+        min_confirm_length=5,
+        max_unconfirm_length=5,
+        max_trace_length=10000,
+        min_violate_num=30,
+        track_id=0,
+    ):
         """
         Initialize variable used by Tracker class
 
@@ -69,15 +73,15 @@ class Tracker(object):
         for i, ti in enumerate(self.active_sets):
             for j in range(len(detections)):
                 diff = self.tracks[ti].prediction - detections[j]
-                if 'scale_bins' in self.model:
-                    diff = diff * self.model['scale_bins']
+                if "scale_bins" in self.model:
+                    diff = diff * self.model["scale_bins"]
                 distance = np.sqrt(np.sum(diff**2))
                 # hamming distance
                 # distance = r_cell_err + v_cell_err
                 cost[i][j] = distance
 
         # cost = 0.5 * cost
-        cost[cost > 1.5*self.dist_thresh] = 100*self.dist_thresh
+        cost[cost > 1.5 * self.dist_thresh] = 100 * self.dist_thresh
 
         # using Hungarian Algorithm assign
         # the correct detected measurements to predicted tracks
@@ -85,18 +89,18 @@ class Tracker(object):
 
         # debugging, association is NOT optimum!
         if self.verbose:
-            print('\n')
-            print('frame = ', self.frame_idx)
-            print('current track status and centers:')
+            print("\n")
+            print("frame = ", self.frame_idx)
+            print("current track status and centers:")
             for i in self.active_sets:
                 print(self.tracks[i].confirm, self.tracks[i].prediction)
-            print('measurements:')
+            print("measurements:")
             print(detections)
-            print('cost:')
+            print("cost:")
             print(cost)
-            print('links:')
+            print("links:")
             print(row_ind, col_ind)
-            print('\n')
+            print("\n")
 
         assignment = -1 * np.ones(N, dtype=np.int)
         for i in range(len(row_ind)):
@@ -105,7 +109,7 @@ class Tracker(object):
         # check for cost distance assignment v.s. threshold.
         # if cost is very high then un_assign (delete) the unassign it
         for i in range(N):
-            if (cost[i][assignment[i]] > self.dist_thresh):
+            if cost[i][assignment[i]] > self.dist_thresh:
                 assignment[i] = -1
 
         return assignment
@@ -127,13 +131,10 @@ class Tracker(object):
         self.frame_idx += 1
 
         # initialize, create tracks at time -1 where no tracks vector found
-        if (len(self.active_sets) == 0):
+        if len(self.active_sets) == 0:
             for i in range(len(detections)):
                 # [todo] always confirm init targets
-                track = self.init(self.model,
-                                  detections[i],
-                                  self.track_id,
-                                  confirm=1)
+                track = self.init(self.model, detections[i], self.track_id, confirm=1)
                 self.tracks.append(track)
                 self.active_sets.append(self.track_id)
                 self.track_id += 1
@@ -149,13 +150,10 @@ class Tracker(object):
         # start new tracks, these tracks are not assigned,
         # therefore they are initialized but not updated,
         # they will be association next time.
-        if(len(un_assigned_detects) != 0):
+        if len(un_assigned_detects) != 0:
             for new_idx in un_assigned_detects:
                 d0 = detections[new_idx]
-                track = self.init(self.model,
-                                  d0,
-                                  self.track_id,
-                                  confirm=0)
+                track = self.init(self.model, d0, self.track_id, confirm=0)
                 # track.update(d0, 1, self.frame_idx)  # assign
                 self.tracks.append(track)
                 self.active_sets.append(self.track_id)
@@ -166,7 +164,7 @@ class Tracker(object):
             track = self.tracks[self.active_sets[i]]
 
             # correct using measurements or memory
-            if(assignment[i] != -1):  # detect
+            if assignment[i] != -1:  # detect
                 flag_miss = 0
                 d = detections[assignment[i]]
             else:  # miss
@@ -179,7 +177,7 @@ class Tracker(object):
                 track.confirm = 1
 
             # hit maximum traces, remove extra trace
-            if(len(track.trace) > self.max_trace_length):
+            if len(track.trace) > self.max_trace_length:
                 n_trace = len(track.trace)
                 n_head = n_trace - self.max_trace_length
                 track.trace = track.trace[n_head:]
@@ -217,8 +215,7 @@ class Tracker(object):
         x_set = []
         for i in self.active_sets:
             track = self.tracks[i]
-            if (track.confirm == 1 and
-               track.skipped_frames < self.max_skip_prediction):
+            if track.confirm == 1 and track.skipped_frames < self.max_skip_prediction:
                 # [KTB] minimal false alarms
                 x_set.append(track.prediction)
         return np.asarray(x_set)
@@ -249,7 +246,7 @@ class Tracker(object):
         traces = []
         for track in self.tracks:
             if track.confirm == 1:
-                trace = [[]]*tot_frame
+                trace = [[]] * tot_frame
                 for i, k in enumerate(track.trace_idx):
                     trace[k] = track.trace[i]
                 traces.append(trace)
@@ -294,13 +291,13 @@ class Tracker(object):
             v_sign = np.sign(v)
 
             # the detection of range may glitch (noise), mask-off
-            range_rate[np.abs(range_rate) < delta_r/2.5] = 0
+            range_rate[np.abs(range_rate) < delta_r / 2.5] = 0
 
             # infer sign on index where range moves
             idx = np.where(range_rate != 0)[0]
             num_violate = np.sum(range_rate_sign[idx] == v_sign[idx])
             if self.verbose:
-                print('Violate hypothesis = {}'.format(num_violate))
+                print("Violate hypothesis = {}".format(num_violate))
 
             # decide where the tracks violates
             # violate_threshold = self.min_violate_num
@@ -333,4 +330,4 @@ class Tracker(object):
             plt.plot(accel)
             # correct velocity
             for i in range(trace_len):
-                track.trace[i][1] -= accel[i]/2.0
+                track.trace[i][1] -= accel[i] / 2.0
