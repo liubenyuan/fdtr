@@ -102,7 +102,7 @@ class Tracker(object):
             print(row_ind, col_ind)
             print("\n")
 
-        assignment = -1 * np.ones(N, dtype=np.int)
+        assignment = -1 * np.ones(N, dtype=int)
         for i in range(len(row_ind)):
             assignment[row_ind[i]] = col_ind[i]
 

@@ -10,7 +10,7 @@ def median_filter(x_set, kernel_size=11, pad=3):
     # conver non-equal list to ndarray
     length = max(map(len, x_set))
 
-    empty_target = [[np.NaN, np.NaN]]  # a empty [r, v] target
+    empty_target = [[np.nan, np.nan]]  # a empty [r, v] target
     x_mat = np.array([xi.tolist() + empty_target * (length - len(xi)) for xi in x_set])
     nf, nt, _ = x_mat.shape
     xv_filt = deepcopy(x_mat)
@@ -31,7 +31,7 @@ def median_filter(x_set, kernel_size=11, pad=3):
         vi_filter = vi_filter[pad : pad + nf]
 
         # fill NaN back (NaNs are not targets)
-        vi_filter[vi_nan_idx] = np.NaN
+        vi_filter[vi_nan_idx] = np.nan
         xv_filt[:, i, 1] = vi_filter
 
     return xv_filt, x_mat

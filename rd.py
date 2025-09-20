@@ -4,7 +4,7 @@
 import numpy as np
 import numpy.fft as fft
 from scipy import signal
-
+from scipy.signal.windows import hann
 from keystone import kt_chirpz
 from utils import butter_highpass_filter
 
@@ -95,7 +95,8 @@ def rd_transform(
     if window_type == "gaussian":
         w = signal.gaussian(n_slowtime, 8.0)
     elif window_type == "hann":
-        w = signal.hann(n_slowtime, sym=False)
+        #w = signal.hann(n_slowtime, sym=False)
+        w = hann(n_slowtime, sym=False)
     elif window_type == "hamming":
         w = signal.hamming(n_slowtime)
     else:
@@ -143,7 +144,7 @@ def rd_mmv(
         x_mat = kt_chirpz(x_mat, K=K)
 
     # building RD image sequences
-    rd = np.zeros((n_range, n_fft, n_frame), dtype=np.complex)
+    rd = np.zeros((n_range, n_fft, n_frame), dtype=complex)
     for i in range(n_frame):
         # extract the i-th segment
         idx = i * n_pulse + np.arange(n_pulse)

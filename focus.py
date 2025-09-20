@@ -3,7 +3,7 @@
 # 2019-07-01
 from scipy import signal
 import numpy as np
-
+from scipy.signal.windows import hann
 
 def grad_r(img, blur=False):
     """
@@ -194,7 +194,8 @@ def doppler_fourier_transform(r_mat, n_pulse=32, fft_oversample=0):
     # fft_interp before calculating the real-frequency
     freqs = fft_interp * np.fft.fftfreq(n_slowfft)
     # window = signal.gaussian(n_frame, 16)
-    window = signal.hann(n_frame, sym=False)
+    #window = signal.hann(n_frame, sym=False)
+    window = hann(n_frame, sym=False)
     # window = np.ones(n_frame)
 
     for k in range(n_doppler):
@@ -281,9 +282,9 @@ def doppler_cpi_estimate(
 
     # windowing signal before FFT
     if window == "hann":
-        window_fcn = signal.hann(n_frame, sym=False)
+        window_fcn = hann(n_frame, sym=False)
     elif window == "gauss":
-        window_fcn = signal.gaussian(n_frame, 16)
+        window_fcn = hann(n_frame, sym=False)
     elif window == "kaiser":
         window_fcn = signal.kaiser(n_frame, 3.5)
     else:

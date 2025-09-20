@@ -35,7 +35,8 @@ def chirpz_fast(sig, ratio, A=1):
     sig_fft = fft.fft(w_coeff * sig, L)
 
     # coefficient
-    h = np.zeros(L, dtype=np.complex)
+    #h = np.zeros(L, dtype=np.complex)
+    h = np.zeros(L, dtype=complex)
     # h[:M] = np.power(W, -m_idx**2/2.0)
     # h[L-M+1:] = np.power(W, -m_idx[M-1:0:-1]**2/2.0)
     h[:M] = np.conj(w_coeff)
@@ -62,7 +63,7 @@ def chirpz(sig, ratio, A=1):
     # [WARNING] phase center: mid-point of sig
     m_idx = np.arange(M)
     w_coeff = A * np.exp(-1j * ratio * np.pi / M * (m_idx**2))
-    h = np.zeros(L, dtype=np.complex)
+    h = np.zeros(L, dtype=complex)
     h[:M] = np.conj(w_coeff)
     h2 = (L - np.arange(M, L)) ** 2
     h[M:] = A * np.exp(1j * ratio * np.pi / M * h2)

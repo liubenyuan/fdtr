@@ -14,7 +14,7 @@ from postproc import mad_filter_v
 from score import ktb_save
 
 
-version = "online"
+version = "offline"
 
 if version == "offline":
     verbose = True
@@ -25,22 +25,18 @@ else:
     dump_pickle = False
     gate_name = "radar_data_gate"  # on-line key value
 
-"""
-main interface
-
-example:
-arg_folder = '/data/ktb2019/data/'
-arg_id = 'data1'
-arg_output = '/data/ktb2019/data/{0}.txt'.format(arg_id)
-"""
 argc = len(sys.argv)
 if argc != 4:
-    raise Exception("usage: main.py folder data_id output.txt")
+    #raise Exception("usage: main.py folder data_id output.txt")
+    arg_folder = 'data/'
+    arg_id = 'data1'         #改数据只需要修改这里
+    arg_output = f"data/{arg_id}/output_{arg_id}.txt"
 else:
     arg_folder = sys.argv[1]
     arg_id = sys.argv[2]
     arg_output = sys.argv[3]
-
+if version == "offline":
+    gate_name = f"{arg_id}_gate"
 if verbose:
     print(arg_folder, arg_id, arg_output)
 
